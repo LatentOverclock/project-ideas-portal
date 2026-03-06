@@ -12,9 +12,9 @@ import (
 )
 
 func main() {
-	dsn := getenv("DATABASE_URL", "postgres://app:app@localhost:5432/projectideas?sslmode=disable")
-	port := getenv("PORT", "8080")
-	secret := getenv("JWT_SECRET", "change-me")
+	dsn := env("DATABASE_URL", "postgres://app:app@localhost:5432/projectideas?sslmode=disable")
+	port := env("PORT", "8080")
+	secret := env("JWT_SECRET", "change-me")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	s, err := store.NewPostgresStore(ctx, dsn)
@@ -25,4 +25,5 @@ func main() {
 	log.Printf("backend listening on :%s", port)
 	log.Fatal(http.ListenAndServe(":"+port, a.Router()))
 }
-func getenv(k, d string) string { if v:=os.Getenv(k); v!="" { return v }; return d }
+
+func env(k, d string) string { if v := os.Getenv(k); v != "" { return v }; return d }

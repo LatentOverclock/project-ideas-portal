@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "vite build",
-    "preview": "vite preview --host"
+    "build": "vite build"
   },
   "dependencies": {
     "react": "^19.0.0",

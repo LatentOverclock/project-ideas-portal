@@ -1,14 +1,11 @@
 DC=docker compose
 
 .PHONY: up down logs deploy
-auto:
-	@echo "Use make up|down|logs|deploy"
-
 up:
-	$(DC) up -d --build
+	$(DC) -f docker-compose.yml -f docker-compose.local.yml up -d --build
 
 down:
-	$(DC) down -v
+	$(DC) -f docker-compose.yml -f docker-compose.local.yml down -v
 
 logs:
 	$(DC) logs -f

@@ -9,7 +9,7 @@ type User struct {
 	CreatedAt    time.Time
 }
 
-type ProjectIdea struct {
+type Idea struct {
 	ID          int64
 	UserID      int64
 	UserEmail   string

@@ -14,14 +14,7 @@ type Claims struct {
 }
 
 func Sign(secret string, userID int64, email string) (string, error) {
-	claims := Claims{
-		UserID: userID,
-		Email:  email,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
+	claims := Claims{UserID: userID, Email: email, RegisteredClaims: jwt.RegisteredClaims{IssuedAt: jwt.NewNumericDate(time.Now()), ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour))}}
 	t := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return t.SignedString([]byte(secret))
 }
@@ -33,12 +26,12 @@ func Parse(secret, token string) (*Claims, error) {
 		}
 		return []byte(secret), nil
 	})
-	if err != nil {
-		return nil, err
-	}
-	claims, ok := parsed.Claims.(*Claims)
-	if !ok || !parsed.Valid {
+	if err != nil || !parsed.Valid {
 		return nil, fmt.Errorf("invalid token")
 	}
-	return claims, nil
+	c, ok := parsed.Claims.(*Claims)
+	if !ok {
+		return nil, fmt.Errorf("invalid token")
+	}
+	return c, nil
 }
