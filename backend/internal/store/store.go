@@ -15,5 +15,6 @@ type Store interface {
 	CreateUser(ctx context.Context, email, passwordHash string) (*model.User, error)
 	GetUserByEmail(ctx context.Context, email string) (*model.User, error)
 	CreateIdea(ctx context.Context, userID int64, title, description string) (*model.Idea, error)
+	DeleteIdea(ctx context.Context, userID int64, ideaID int64) (bool, error)
 	ListIdeas(ctx context.Context) ([]model.Idea, error)
 }

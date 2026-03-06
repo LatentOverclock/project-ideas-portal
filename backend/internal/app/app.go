@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -242,6 +243,24 @@ func buildSchema(s store.Store, secret string) (graphql.Schema, error) {
 						"userEmail":   i.UserEmail,
 						"createdAt":   i.CreatedAt.UTC().Format(time.RFC3339),
 					}, nil
+				},
+			},
+			"deleteIdea": &graphql.Field{
+				Type: graphql.NewNonNull(graphql.Boolean),
+				Args: graphql.FieldConfigArgument{
+					"id": &graphql.ArgumentConfig{Type: graphql.NewNonNull(graphql.ID)},
+				},
+				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+					u, ok := p.Context.Value(userKey).(authUser)
+					if !ok {
+						return nil, errors.New("unauthorized")
+					}
+					ideaIDRaw := fmt.Sprintf("%v", p.Args["id"])
+					ideaID, err := strconv.ParseInt(ideaIDRaw, 10, 64)
+					if err != nil {
+						return nil, errors.New("invalid id")
+					}
+					return s.DeleteIdea(ctxOrBackground(p.Context), u.ID, ideaID)
 				},
 			},
 		},

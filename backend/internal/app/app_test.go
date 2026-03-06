@@ -62,8 +62,12 @@ func TestRequirementsFlow(t *testing.T) {
 		t.Fatalf("createIdea #2 failed: %v", create2["errors"])
 	}
 
+	// Register second user for ownership checks.
+	regOther := gql(t, h, "", `mutation($email:String!,$password:String!){register(email:$email,password:$password){email token}}`, map[string]any{"email": "other@example.com", "password": "password-123"})
+	otherToken := regOther["data"].(map[string]any)["register"].(map[string]any)["token"].(string)
+
 	// R4+R5: List ideas newest-first and include creator + timestamp.
-	list := gql(t, h, "", `query { ideas { title userEmail createdAt } }`, nil)
+	list := gql(t, h, "", `query { ideas { id title userEmail createdAt } }`, nil)
 	if list["errors"] != nil {
 		t.Fatalf("ideas query failed: %v", list["errors"])
 	}
@@ -78,5 +82,28 @@ func TestRequirementsFlow(t *testing.T) {
 	}
 	if first["userEmail"].(string) == "" || first["createdAt"].(string) == "" {
 		t.Fatalf("creator/timestamp missing: %v", first)
+	}
+
+	// R6: Authenticated users can delete only their own ideas.
+	firstIdeaID := first["id"].(string)
+	deleteByOther := gql(t, h, otherToken, `mutation($id:ID!){deleteIdea(id:$id)}`, map[string]any{"id": firstIdeaID})
+	if deleteByOther["errors"] != nil {
+		t.Fatalf("delete by other returned error: %v", deleteByOther["errors"])
+	}
+	if deleteByOther["data"].(map[string]any)["deleteIdea"].(bool) {
+		t.Fatalf("other user should not be able to delete idea")
+	}
+
+	deleteOwn := gql(t, h, token, `mutation($id:ID!){deleteIdea(id:$id)}`, map[string]any{"id": firstIdeaID})
+	if deleteOwn["errors"] != nil {
+		t.Fatalf("delete own failed: %v", deleteOwn["errors"])
+	}
+	if !deleteOwn["data"].(map[string]any)["deleteIdea"].(bool) {
+		t.Fatalf("owner should be able to delete idea")
+	}
+
+	listAfterDelete := gql(t, h, "", `query { ideas { title } }`, nil)
+	if len(listAfterDelete["data"].(map[string]any)["ideas"].([]any)) != 1 {
+		t.Fatalf("expected 1 idea after delete")
 	}
 }

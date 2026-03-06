@@ -101,6 +101,14 @@ func (s *PostgresStore) CreateIdea(ctx context.Context, userID int64, title, des
 	return &i, nil
 }
 
+func (s *PostgresStore) DeleteIdea(ctx context.Context, userID int64, ideaID int64) (bool, error) {
+	result, err := s.pool.Exec(ctx, `DELETE FROM ideas WHERE id=$1 AND user_id=$2`, ideaID, userID)
+	if err != nil {
+		return false, err
+	}
+	return result.RowsAffected() > 0, nil
+}
+
 func (s *PostgresStore) ListIdeas(ctx context.Context) ([]model.Idea, error) {
 	rows, err := s.pool.Query(ctx,
 		`SELECT i.id,i.user_id,u.email,i.title,i.description,i.created_at

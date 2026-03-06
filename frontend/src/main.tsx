@@ -64,6 +64,12 @@ function App() {
     await loadIdeas()
   }
 
+  const deleteIdea = async (id: string) => {
+    setError('')
+    await gql(`mutation($id:ID!){ deleteIdea(id:$id) }`, { id }, token)
+    await loadIdeas()
+  }
+
   const logout = () => {
     setToken('')
     setEmail('')
@@ -111,7 +117,12 @@ function App() {
         <ul className="idea-list">
           {ideas.map((idea) => (
             <li key={idea.id} className="idea-item">
-              <div><strong>{idea.title}</strong></div>
+              <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong>{idea.title}</strong>
+                {token && email && idea.userEmail === email && (
+                  <button className="btn-outline" onClick={() => deleteIdea(idea.id)}>Delete</button>
+                )}
+              </div>
               <p>{idea.description}</p>
               <p className="meta">by {idea.userEmail} · {new Date(idea.createdAt).toLocaleString()}</p>
             </li>

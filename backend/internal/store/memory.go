@@ -66,6 +66,21 @@ func (s *MemoryStore) CreateIdea(_ context.Context, userID int64, title, descrip
 	return &i, nil
 }
 
+func (s *MemoryStore) DeleteIdea(_ context.Context, userID int64, ideaID int64) (bool, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for idx, idea := range s.ideas {
+		if idea.ID == ideaID {
+			if idea.UserID != userID {
+				return false, nil
+			}
+			s.ideas = append(s.ideas[:idx], s.ideas[idx+1:]...)
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (s *MemoryStore) ListIdeas(_ context.Context) ([]model.Idea, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
